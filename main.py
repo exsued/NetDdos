@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from RangeSlider.RangeSlider import RangeSliderH
+import threading
 import subprocess
 import os
 import sys
@@ -15,14 +16,49 @@ def remove_button_click():
     if(len(targets_listBox.curselection()) > 0):
         targets_listBox.delete(targets_listBox.curselection()[0])
 
-def start_button_click():
+cmd = None
+
+def execBackEnd(dests, tcpEnabled, udpEnabled):
+    global cmd
     # determine if application is a script file or frozen exe
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
     elif __file__:
         application_path = os.path.dirname(__file__)
-    os.path.join(application_path, "ddos")
-    result = subprocess.run([sys.executable], capture_output=True, text=True)
+    application_path = os.path.join(application_path, "ddos")
+    args = ["-source"]
+    args.append("127.0.0.1")
+    args.append("-destination")
+    args.append(','.join(dests))
+    if(tcpEnabled == 1):
+        args.append("-tcp")
+    if(udpEnabled == 1):
+        args.append("-udp")
+    args.insert(0, application_path)
+    print(args)
+    #args = ["-source", "192.168.0.1", "-destination", "192.168.10.8", "-intervalTCP", "1", "-tcp", "-udp"]
+    cmd = subprocess.Popen(args, stdout=subprocess.PIPE)
+    for line in cmd.stdout:
+        print(str(line).rstrip("\n"))
+    cmd.wait()  # you may already be handling this in your current code
+
+backEndRunning = False
+t = None
+def start_button_click():
+    global backEndRunning
+    global t
+    if backEndRunning:
+        t.do_run = False
+        cmd.kill()
+        start_button.config(text="Start")
+        backEndRunning = False
+    else:
+        destinations = targets_listBox.get(0, END)
+        print(str(useTCP.get()) + " " + str(useUDP.get()))
+        t = threading.Thread(target=execBackEnd, args=[destinations, useTCP.get(), useUDP.get()])
+        t.start()
+        start_button.config(text="Stop")
+        backEndRunning = True
 
 win = Tk()
 
@@ -57,7 +93,6 @@ start_button = Button(canvas, text="Start", command=start_button_click)
 start_button.place(x=0, y=280, width=150)
 
 targets_listBox.insert(END, "192.168.0.1")
-targets_listBox.insert(END, "127.0.0.1")
 ###################################################
 
 ###################  RIGHT SIZE  ##################
@@ -65,12 +100,9 @@ targets_listBox.insert(END, "127.0.0.1")
 label_packet_size = Label(canvas, text="Packet size(bytes):")
 label_packet_size.place(x=205, y=0)
 
-useTCP = BooleanVar()
-useTCP.set(0)
-useUDP = BooleanVar()
-useUDP.set(0)
-useICMP = BooleanVar()
-useICMP.set(0)
+useTCP = IntVar()
+useUDP = IntVar()
+useICMP = IntVar()
 
 tcp_check = Checkbutton(canvas, text="TCP", variable=useTCP, onvalue=1, offvalue=0)
 tcp_check.place(x=190, y=35)

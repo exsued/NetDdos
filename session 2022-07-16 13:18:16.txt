@@ -1,1 +1,0 @@
-run: ['/home/h4571/Documents/dev/NetDdos/ddos', '-source', '127.0.0.1', '-destination', 'pizda', '-tcp', '-udp']

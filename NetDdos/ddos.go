@@ -8,6 +8,8 @@ import (
 	"net"
 	"strconv"
 	"time"
+
+	"github.com/go-ping/ping"
 )
 
 var (
@@ -99,20 +101,20 @@ func main() {
 			log.Fatalln(err.Error())
 		}
 		go func() {
-			udp4DDos(src, dest, uint(dataSize), intervalTCP)
+			udp4DDos(src, dest, uint(dataSize), intervalUDP)
 		}()
 	}
 	if icmpEnabled {
 		return
-		src, err := net.ResolveTCPAddr("icmp", sourceFlag+":"+strconv.Itoa(ports[2]))
+		pinger, err := ping.NewPinger(destinationFlag)
+		pinger.Debug = true
 		if err != nil {
-			log.Fatalln(err.Error())
+			panic(err)
 		}
-		dest, err := net.ResolveTCPAddr("icmp", destinationFlag+":"+strconv.Itoa(ports[2]))
+		err = pinger.Run()
 		if err != nil {
-			log.Fatalln(err.Error())
+			panic(err)
 		}
-		tcp4DDos(src, dest, uint(dataSize), intervalTCP)
 	}
 	for tcpEnabled || udpEnabled || icmpEnabled {
 		continue
